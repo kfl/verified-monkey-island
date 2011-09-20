@@ -1,0 +1,171 @@
+-- Monkey Island 2, part 1
+
+-- Initial state (facts)
+shovel:In:Woodtick
+shovel:pickupable
+
+monocle:In:WallyEye
+monocle:pickupable
+
+bucket:In:PirateShip
+bucket:pickupable
+
+box:openable
+box:closed
+
+knife:In:Kitchen
+knife:pickupable
+
+string:pickupable
+string:In:VoodooHead
+
+stick:In:beach
+stick:pickupable
+
+toupee:In:Largo'sroom
+
+-- Woodtick
+in:Woodtick => {
+	{not(robbedbyLargo)} -go:X> {robbedbyLargo}
+	robbedbyLargo => {
+		is:hired   -go:BloddyLips> {not(is:hired)}
+		apply GOTO [Map, Kitchen, BloddyLips, WallyRoom, Inn, Woodsmith]
+	}
+}
+
+-- Wally scene
+in:WallyRoom => {
+	{monocle:In:WallyEye} <->         {monocle:In:WallyRoom}
+	GOTO Woodtick
+}
+
+-- Woodsmith
+inWoodsmith => {
+	{have:money:X, X>=1, knowPolish}   -ask:polish> {have:money:Y, Y=X-1, have:polish}
+	GOTO Woodtick
+}
+
+
+
+-- PirateShip
+in:PirateShip => {
+	{not(knowPolish)}                 -askAboutLeg>    {knowPolish}
+	{knowPolish, not(gotMoneyFromMOLMF), have:money:X} -askForMoney> {have:money:X+1, gotMoneyFromMOLMF}
+	{have:polish, gotMoneyFromMOLMF, have:money:X} -use:polish,leg> {have:money:X+1}
+	{have:polish, not(gotMoneyFromMOLMF)}      -use:polish,leg> {}
+
+	{not(have:bucket)}                -pickUp:bucket>  {mustAsk:16}
+	{mustAsk:X, X>1}                  -ask:yours>      {have:bucket}
+	{mustAsk:X, X>1}                  -ask:please>     {mustAsk:X-1}
+	{mustAsk:X, X=0}                  -ask:please>     {have:bucket}
+
+	{box:open, have:stick}            -use:stick,box>  {not(have:stick), stick:In:box}
+	{cheese:In:box, box:open}         -pickUp:cheese>  {have:cheese, not(cheese:In:box)}
+	{box:open, not(stick:In:box)}     -?>              {box:closed}
+	{stick:In:box, not(string:In:box)}
+	                                  -pickUp:stick>  {have:stick, not(stick:In:box)}
+	{stick:In:box, have:string}       -use:string,stick> {not(have:string), string:In:box}
+	{string:In:box}                   -pickUp:string> {not(string:In:box, stick:In:box), have:(stick,string), box:closed}
+	{have:cheese,box:open, not(stick:In:box)} 
+	                                  -use:cheese,box> {not(have:cheese), cheese:In:box, box:closed}
+	{have:cheese,box:open, stick:In:box} 
+	                                  -use:cheese,box> {not(have:cheese), cheese:In:box}
+	{cheese:In:box, box:open}         ->               {rat:In:box}
+	{rat:In:box, box:open}            -pickUp:rat>     {have:rat, not(rat:In:box)}
+	{Largo:dirty}                     ->               {notice:In:Largo'sroom}
+	{have:notice}                     -give:notice,laundryguy> {not(have:notice), have:bra}
+	GOTO Woodtick
+}
+
+-- Inn
+in:Inn => {
+	{have:knife, keeper:In:Inn}  -use:knife,rope> {not(keeper:In:Inn)}
+	{not(keeper:In:Inn), Largodoor:closed} -open:Largodoor> {Largodoor:open}
+	{Largodoor:open} -close:Largodoor> {Largodoor:closed}
+	{Largodoor:open} -go:Largo'sroom> {not(in:Inn), in:Largo'sroom}
+}
+
+-- Largo's room
+in:Largo'sroom => {
+	not(Largo:In:Largo'sroom) => {
+		{toupee:In:Largo'sroom} -pickUp:toupee> {have:toupee, not(toupee:In:Largo'sroom)}
+		{Largodoor:open} -close:Largodoor> {Largodoor:closed}
+		{have:(bucket:mud), Largodoor:closed} -use:bucket:mud,Largosdoor> {not(have:(bucket:mud)), Largo:dirty}
+		{notice:In:Largo'sroom, Largodoor:closed} -pickUp:notice> {not(notice:In:Largo'sroom}, have:notice}
+		{} -> {Largo:In:Largo'sroom, not(in:Largo'sroom), in:Inn, Largodoor:open}
+	}
+}
+
+
+-- BloddyLips
+in:BloddyLips => {
+	{rat:In:vichyssoise, not(is:hired)} -ask:stew> {job:available}
+	{job:available, have:money:X}       -ask:job>  {have:money:X+420, not(job:available), is:hired, not(in:BloddyLips), in:Kitchen}
+	{is:hired}                          -> {not(is:hired)}
+	{not(spit:In:BloddyLips)}           -ask:business> {spit:In:BloddyLips}
+	{spit:In:BloddyLips, have:paper}    -use,paper,spit> {have:spit, not(spit:In:BloddyLips}
+}
+
+-- Kitchen
+in:Kitchen => {
+	{have:rat}  -use:rat,vichyssoise> {not(have:rat), rat:In:vichyssoise}
+
+	GOTO Woodtick
+	{not(know:hiredHelpOnly)}  -go:BloddyLips> {know:hiredHelpOnly, not(in:Kitchen), in:BloddyLips}
+}
+
+-- Swamp
+in:Swamp => {
+	{not(coffinTransport)}  -use:coffin>  {coffinTransport}
+	{coffinTransport}       -row:VoodooHead> {not(in:Swamp), in:VoodooHead, not(coffinTransport)}
+	{coffinTransport}       -row:shore> {not(coffinTransport)}
+	{have:bucket}           -use:bucket,swamp> {have:(bucket:mud), not(have:bucket)}
+}
+
+-- VoodooHead
+in:VoodooHead => {
+	{not(dollquest)}  -ask:Largo> {dollquest}
+	{have:{spit:paper,bra,bones,toupee} -give:items> {not(have:(), have:doll)}
+}
+
+-- Beach
+in:Beach => {
+  -- the stick have been placed here in the "facts" section
+	
+	-- there are no more parts on the beach that are relevant to model;
+	-- you can talk to the pirates, but it have no effect other than 
+	-- you getting the story of Largo's embargo
+}
+
+-- Peninsula
+in:Peninsula => {
+	GOTO Map
+	GOTO Houseboat
+}
+
+-- Houseboat
+in:Houseboat => {
+	GOTO Peninsula
+	{have:monocle} -give:monocle> {not(have:monocle), DreadHaveLuck}
+	{have:money:X, X>20, not(LargoEmbargo), have:monocle
+}
+
+-- Cemetery
+
+in:Cemetery => {
+	apply GOTO [Graves, Map]
+}
+
+-- Graves
+in:Graves => {
+	{have:shovel, not(diggedLargosGrave)} -use:shovel,grave> {have:bones, diggedLargosGrave}
+	GOTO Cemetery
+}
+
+-- General rules
+{in:X, Y:In:X, X:pickupable} -pickUp:Y> {have(Y), not(Y:In:X)}
+{in:X, Y:In:X, Y:openable, Y:closed} -open:Y> {Y:open}
+{in:X, Y:In:X, Y:closeable, Y:open} -close:Y> {Y:closed}
+
+
+GOTO = λX:{in:Y} -go:X> {not(in:Y), in:X}
