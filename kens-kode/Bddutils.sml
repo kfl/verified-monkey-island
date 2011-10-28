@@ -19,7 +19,7 @@ val varsetToList = foldVarset op:: []
 fun foldVarsetLower f init vs = List.foldl f init (varsetToList vs)
 
 fun reachable I T xs xs' =
-    let val renamelist = ListPair.zip (varsetToList xs, varsetToList xs')
+    let val renamelist = ListPair.zip (varsetToList xs', varsetToList xs)
         val pairset    = bdd.makepairSet renamelist
         open bdd infix OR
         fun loop R =
