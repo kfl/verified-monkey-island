@@ -1,0 +1,175 @@
+%token <(int*int)> INIT LOC STORY END CONTAINS LCUR RCUR COMMA QUE RR LPAR RPAR LBRA RBRA RULE UNDEFINED DOT AMP SEMI
+%token <(int*int)> NEQ EQ LT GT LEQ GEQ ASSIGN ADD SUB NOT
+%token <string*(int*int)> CONST NAME STRING
+%token <int*(int*int)> NUM
+%token <(int*int)> EOF
+
+%left ADD SUB
+%nonassoc LOC
+
+%start GScript
+%type <ESyntax.GScript>      GScript
+%type <ESyntax.Initial>      Initial
+%type <ESyntax.LocDef list>  LocDefs
+%type <ESyntax.LocDef>       LocDef
+%type <ESyntax.mrule list>   LocBody
+%type <ESyntax.erule>        Rule
+%type <ESyntax.erule list>   Rules
+%type <ESyntax.mrule list>   MRules
+%type <ESyntax.metarule>        MetaRule
+%type <ESyntax.metarule list>   MetaRules
+%type <ESyntax.erule>        PRule
+%type <ESyntax.erule>        ARule
+%type <ESyntax.precondition> Precond
+%type <ESyntax.precondition list> PrecondList
+%type <ESyntax.vop>          VOP
+%type <ESyntax.name list>          NameList
+%type <ESyntax.action>       Action
+%type <ESyntax.update>       Update
+%type <ESyntax.update list>  UpdateList
+%type <ESyntax.exp>          Exp
+%type <ESyntax.mrule>        MRule
+%type <ESyntax.arg>          Arg
+%type <ESyntax.arg list>     ArgList
+%type <ESyntax.value>        Value
+%type <string*string option> Id
+%%
+
+GScript:
+	EOF              { (NONE,"NAS", [], []) }
+	| STORY CONST Initial LocDefs END { (NONE,#1 $2, $3, $4) }
+	| MetaRules STORY CONST Initial LocDefs END { (SOME $1,#1 $3, $4, $5) }
+;
+
+MetaRule:
+RULE CONST LPAR NameList RPAR LocBody {ESyntax.MetaRule(#1 $2,$4,$6)}
+;
+
+MetaRules:
+MetaRule {[$1]}
+|MetaRule MetaRules {$1 :: $2}
+;
+
+Initial:
+	INIT LCUR UpdateList RCUR   { $3 }
+;
+
+LocDefs:
+	LocDef           { [$1] }
+	| LocDef LocDefs { $1 :: $2 }
+;
+
+LocDef:
+	  LOC CONST CONTAINS LCUR NameList RCUR LocBody   { (#1 $2, $5, $7) }
+	| LOC CONST LocBody   { (#1 $2, [], $3) }
+;
+
+Id:
+	NAME            { (#1 $1, NONE) }
+	| NAME DOT NAME { (#1 $1, SOME (#1 $3)) }
+;
+
+NameList:
+	NAME                { [#1 $1] }
+	| NAME COMMA NameList {(#1 $1) :: $3 }
+;
+
+LocBody:
+	MRule             { [$1] }
+	| MRule LocBody   { $1 :: $2 }
+;
+
+Arg:
+	NAME                   {ESyntax.AID (#1 $1)}
+	| LCUR UpdateList RCUR {ESyntax.AUpdates $2}
+	| Value                {ESyntax.AValue $1}
+;
+
+ArgList:
+	Arg                 {[$1]}
+	| Arg COMMA ArgList {$1::$3}
+;
+
+MRule:
+	Rule                            { ESyntax.ERule $1}
+	| CONST LPAR ArgList RPAR       { ESyntax.MetaRuleInst(#1 $1,$3)}
+;
+
+MRules:
+	MRule          { [ $1 ] }
+	| MRule MRules  { $1 :: $2 }
+;
+
+
+Rules:
+	Rule          { [ $1 ] }
+	| Rule Rules  { $1 :: $2 }
+;
+
+
+Rule:
+	PRule    { $1 }
+	| ARule    { $1 }
+;
+
+PRule:
+	LCUR PrecondList RCUR QUE ARule { ESyntax.PRule ($2, [$5]) }
+	| LCUR PrecondList RCUR QUE PRule { ESyntax.PRule ($2, [$5]) }
+	| LCUR PrecondList RCUR QUE LCUR Rules RCUR { ESyntax.PRule ($2, $6) }
+;
+
+ARule:
+	  Action RR LCUR UpdateList RCUR { ESyntax.ARule ($1, $4, ESyntax.NOP)}
+	| Action RR LCUR UpdateList RCUR AMP LCUR STRING RCUR 
+	                                 { ESyntax.ARule ($1, $4, ESyntax.PRINT (#1 $8))}
+	| Action RR NAME                 { ESyntax.SRule ($1, #1 $3)}
+;
+
+Action:
+	NAME LPAR NameList RPAR  { ESyntax.PA (#1 $1, $3) }
+;
+
+UpdateList:
+	Update                    { [ $1 ] }
+	| Update COMMA UpdateList { $1 :: $3 }
+	| Update SEMI UpdateList { $1 :: $3 }
+;
+
+Update: 
+	Id ASSIGN Exp      { ($1, $3) } 
+	| Id               { ($1, ESyntax.EV (ESyntax.C "True")) }
+	| NOT LPAR Id RPAR { ($3, ESyntax.EV (ESyntax.C "False")) } 
+	| END CONST        { ((#1 $2,NONE), ESyntax.EV (ESyntax.C "True")) } ;
+
+Value:
+       NUM          { ESyntax.I (#1 $1)}
+     | CONST        { ESyntax.C (#1 $1)}
+     | UNDEFINED    { ESyntax.U }
+;
+
+Exp:
+	  Value        { ESyntax.EV  $1}
+	| Id           { ESyntax.EID ($1)}
+	| Exp ADD Exp  { ESyntax.EOP (ESyntax.EADD, [$1, $3])}
+	| Exp SUB Exp  { ESyntax.EOP (ESyntax.ESUB, [$1, $3])}
+;
+
+PrecondList:
+	Precond                     { [$1] }
+	| Precond COMMA PrecondList   { $1 :: $3 }
+;
+
+Precond:
+	Exp VOP Exp           { ESyntax.Pre ($1, $2, $3) }
+	| Id               { ESyntax.Pre (ESyntax.EID($1), ESyntax.EQ, ESyntax.EV(ESyntax.C "True")) }
+	| NOT LPAR Id RPAR { ESyntax.Pre (ESyntax.EID($3), ESyntax.NEQ, ESyntax.EV(ESyntax.C "True")) }
+;
+
+VOP:
+	EQ     { ESyntax.EQ  }
+	| NEQ  { ESyntax.NEQ }
+	| LT   { ESyntax.LT  }
+	| GT   { ESyntax.GT  }
+	| LEQ  { ESyntax.LEQ }
+	| GEQ  { ESyntax.GEQ }
+;

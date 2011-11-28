@@ -1,0 +1,71 @@
+structure StateIntInt : Statesig =
+State.fState2(State.NameInt)( State.ValueInt)
+(* struct *)
+(*   type name      = int *)
+(*   type const     = int *)
+(*   datatype value = I of int | C of const *)
+(*   type state = (name * value) list *)
+
+(*   val compareName = Int.compare *)
+(*   val compareConst = Int.compare *)
+
+(*   val empty = [] *)
+
+(*   val undefinedValue = C ~1 *)
+
+(*   fun ppconst i = "$C"^(Int.toString i) *)
+(*   fun ppname i = "$N"^(Int.toString i) *)
+(*   fun ppnum i = Int.toString i *)
+(*   fun ppval (I i) = ppnum i *)
+(*     | ppval (C c) = ppconst c *)
+(*   fun ppstate _ = "" *)
+
+(*   fun makeState x = x *)
+
+(*   fun constInt i = I i *)
+(*   fun constConst i = C i *)
+
+(*   (\* conversion of gscript int-value to ml-int *\) *)
+(*   fun isConst (C s) = true *)
+(*     | isConst _ = false *)
+
+(*   fun valToInt (I n) = n *)
+(*     | valToInt _ = raise Fail "valtoInt: this should not happen" *)
+(*   fun valToConst (C s) = s *)
+(*     | valToConst _ = raise Fail "valtoConst(int): this should not happen" *)
+
+(*   fun lookup [] x = raise Fail ("Not found index StateIntInt: " ^ (Int.toString x)) *)
+(*     | lookup ((y, v) :: st) x = if compareName(x, y) = EQUAL then v else lookup st x *)
+
+(*   fun mapsto [] (x, v) = [(x,v)] *)
+(*     | mapsto ((y, v') :: state) (x, v) =  *)
+(*       (case compareName(x,y) of *)
+(* 	   LESS => (x,v)::(y,v')::state *)
+(*          | EQUAL => (x,v)::state  *)
+(*          | GREATER => (y,v')::(mapsto state (x,v))) *)
+
+(*   fun compareValue (I i1,I i2) = Int.compare(i1,i2) *)
+(*     | compareValue (C c1,C c2) = compareConst(c1,c2) *)
+(*     | compareValue _ = raise Fail "compareValue: Comparing Integer and constant" *)
+
+(*   fun compare ((s,v)::l,(s',v')::l') =  *)
+(*     (case compareName(s,s') of *)
+(*           LESS => GREATER *)
+(*         | GREATER => LESS *)
+(*         | EQUAL => (case compareValue(v,v') of *)
+(*                         EQUAL => compare (l,l') *)
+(*                       | a => a )) *)
+(*     | compare ([],[]) = EQUAL *)
+(*     | compare (_,[]) = GREATER *)
+(*     | compare ([],_) = LESS *)
+(*   val equal = fn pair => compare pair = EQUAL *)
+(* (\*   open TextIO *\) *)
+(* (\*   val output = fn x => (output (stdOut, x); flushOut stdOut ) *\) *)
+(* (\*   fun concatWith s [] = "" *\) *)
+(* (\*     | concatWith s [e] = e *\) *)
+(* (\*     | concatWith s (e :: l) = e ^ s ^ concatWith s l *\) *)
+(* (\*   fun ppbinding ppval (name, v) = (N.ppname name) ^ " --> " ^ ppval v *\) *)
+(* (\*   fun ppstate ppval s = "T = { " ^ concatWith ", " (map (ppbinding ppval) s) ^ " }\n" *\) *)
+(*   fun getCount () = 0 *)
+(*   fun hash _ = raise Fail "" *)
+(* end *)

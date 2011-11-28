@@ -1,0 +1,85 @@
+
+
+(* struct *)
+(*   type name      = string *)
+(*   type const     = string *)
+(*   datatype value = I of int | C of const | U *)
+(*   type state = (name * value) list *)
+
+(*   val compareName = String.compare *)
+(*   val compareConst = String.compare *)
+(*   fun compareValue (I i1,I i2) = Int.compare(i1,i2) *)
+(*     | compareValue (C c1,C c2) = compareConst(c1,c2) *)
+(*     | compareValue (U,_) = LESS *)
+(*     | compareValue (_,U) = GREATER *)
+(*     | compareValue (U,U) = EQUAL *)
+(*     | compareValue _ = raise Fail "compareValue: argh" *)
+
+(*   fun ppconst s = s *)
+(*   fun ppname s = s *)
+(*   fun ppnum i = Int.toString i *)
+(*   fun ppval (I i) = ppnum i *)
+(*     | ppval (C c) = ppconst c *)
+(*     | ppval U = "Undefined" *)
+(*   fun concatWith s [] = "" *)
+(*     | concatWith s [e] = e *)
+(*     | concatWith s (e :: l) = e ^ s ^ concatWith s l *)
+(*   fun ppbinding (name, v) = (ppname name) ^ " --> " ^ ppval v *)
+(*   fun ppstate s = "T = { " ^ concatWith ", " (map ppbinding s) ^ " }\n" *)
+
+(*   val undefinedValue = U *)
+
+(*   fun constInt i = I i *)
+(*   fun constConst str = C str *)
+(*   fun isConst (C s) = true *)
+(*     | isConst _ = false *)
+
+(*   (\* conversion of gscript int-value to ml-int *\) *)
+(*   fun valToInt (I n) = n *)
+(*     | valToInt _ = raise Fail "valtoInt: this should not happen" *)
+(*   fun valToConst (C s) = s *)
+(*     | valToConst _ = raise Fail "valtoConst(str): this should not happen" *)
+
+(*   (\*state*\) *)
+(*   val empty = [] *)
+
+(*   fun lookup [] x = U *)
+(*     | lookup ((y, v) :: st) x = if compareName(x, y) = EQUAL then v else lookup st x *)
+
+(*   fun mapsto [] (x, v) =  *)
+(*       (case v of U => [] | _ => [(x,v)]) *)
+(*     | mapsto ((y, v') :: state) (x, v) =  *)
+(*       (case compareName(x,y) of *)
+(* 	   LESS => (x,v)::(y,v')::state *)
+(*          | EQUAL => (case v of U => state | _ => (x,v)::state) *)
+(*          | GREATER => (y,v')::(mapsto state (x,v))) *)
+
+(*   fun makeState [] = empty *)
+(*     | makeState ((x,v)::l) = mapsto (makeState l) (x,v) *)
+
+(*   fun equal (x,y) = x = y *)
+
+(*   fun compare ((s,v)::l,(s',v')::l') =  *)
+(*     (case compareName(s,s') of *)
+(*           LESS => GREATER *)
+(*         | GREATER => LESS *)
+(*         | EQUAL => (case compareValue(v,v') of *)
+(*                          EQUAL => compare (l,l') *)
+(*                        | a => a )) *)
+(*     | compare ([],[]) = EQUAL *)
+(*     | compare (_,[]) = GREATER *)
+(*     | compare ([],_) = LESS *)
+
+(* (\*   open TextIO *\) *)
+(* (\*   val output = fn x => (output (stdOut, x); flushOut stdOut ) *\) *)
+
+(* (\*   fun getCount () =  raise Fail "Not implemented: getcount" *\) *)
+(* (\*   fun hash s =   raise Fail "Not implemented : hash" *\) *)
+(* (\*   val hashStr = fn (str:string) => Polyhash.hash str *\) *)
+(* (\*   val halfabillion = ((valOf Int.maxInt)div 2) *\) *)
+(* (\*   fun p (a,b) = ((a mod halfabillion)+ (b mod halfabillion))mod halfabillion *\) *)
+(* (\*   fun hash' a [] = a *\) *)
+(* (\*     | hash' a ((s,v)::l)= hash' ((p(hashStr s,case v of (I i) => i|(C c) => hashStr c)) mod halfabillion) l *\) *)
+(* (\*   val hash = hash' 0 *\) *)
+
+(* end *)
