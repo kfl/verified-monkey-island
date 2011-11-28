@@ -1,0 +1,19 @@
+Story VS
+
+Initial {
+  shovel.loc := Woodtick;
+	player.loc := Woodtick
+}
+
+Location Woodtick
+Locals {path}
+  {shovel.loc = player.loc} ? 
+     pickUp(shovel) >> {shovel.loc := Inv}
+	walkto(path) >> {player.loc := Map}
+
+Location Map
+Locals {path}
+	{shovel.loc = Inv} ?
+		putdown(shovel) >> {shovel.loc := Map}
+	
+End
