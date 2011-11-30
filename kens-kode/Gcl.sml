@@ -55,7 +55,7 @@ fun program (vars : var_map) (PRG(init, commands)) =
                                    bdd.AND(bdd.BIIMP(primed v, bexp be),
                                            res)) 
                                bdd.TRUE assignments
-            in bdd.IMP(bexp guard, assigns) end
+            in bdd.AND(bexp guard, assigns) end
         val init = 
             List.foldl (fn ((v,be), res) => 
                            bdd.AND(bdd.BIIMP(var v, bexp be),
